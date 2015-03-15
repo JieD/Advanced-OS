@@ -23,7 +23,8 @@ void load_idt (IDT* base)
     asm ("lidt %0" : "=m" (mem48));
 }
 
-
+/* Initialize the IDT entry for interrupt number intr_no. 
+The only other argument is a function pointer to the ISR. */
 void init_idt_entry (int intr_no, void (*isr) (void))
 {
 }
@@ -145,6 +146,11 @@ void re_program_interrupt_controller ()
     asm ("movb $0x00,%al;outb %al,$0xA1;call delay");
 }
 
+/* Initialize the interrupt subsystem of TOS the way explained on an earlier slide. 
+ * When the initialization is completed, it sets the global variable interrupts_initialized 
+ * to true. As the last instruction, init_interrupts() enables the interrupts by executing 
+ * the assembly instruction sti. 
+ */
 void init_interrupts()
 {
 }
