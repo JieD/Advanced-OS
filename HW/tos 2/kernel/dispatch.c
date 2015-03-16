@@ -40,6 +40,7 @@ unsigned ready_lists_state;
 void add_ready_queue (PROCESS proc)
 {
 	unsigned short current_priority;
+	PROCESS head, tail;
 	assert (proc->magic = MAGIC_PCB);
 	current_priority = proc->priority;
 
@@ -51,10 +52,12 @@ void add_ready_queue (PROCESS proc)
     	ready_lists_state |= 1 << current_priority; // set the corresponding bit to 1
 	} else {
         // add to the tail
-    	proc->prev = ready_queue[current_priority]->prev;
-        proc->next = ready_queue[current_priority];
-        ready_queue[current_priority]->prev->next = proc;
-        ready_queue[current_priority]->prev = proc;
+		head = ready_queue[current_priority];
+		tail = head->prev;
+		proc->prev = tail;
+		proc->prev = head;
+		tail->next = proc;
+		head->prev = proc;
     }
     proc->state = STATE_READY;
 }
@@ -72,7 +75,7 @@ void add_ready_queue (PROCESS proc)
  * 2. After the removal of the process, the ready queue should be a double-linked list 
  *    again with process p removed.
  * NOTE: no need to change process state since not knowing whether it will be processed
- * 		 be CPU, be killed or etc.
+ * 		 by CPU, be killed or etc.
  *       proc is not necessarily the tail.
  */
 
@@ -107,7 +110,7 @@ BOOL is_bit_set(unsigned value, unsigned bitindex)
 int get_highest_priority(unsigned value, unsigned current_priority)
 {
     int i;
-    for(i = MAX_READY_QUEUES - 1; i >= current_priority; i--)
+    for(i = MAX_READY_QUEUES - 1; i > current_priority; i--)
         if(is_bit_set(value, i))
         	return i;
 }
