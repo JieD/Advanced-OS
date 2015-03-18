@@ -8,8 +8,8 @@ void test_window_1()
     output_string(kernel_window, "Hello World!\n");
 
     char* expected_output[] = {
-	"Hello World!",
-	NULL
+		"Hello World!",
+		NULL
     };
     check_screen_output(expected_output);
     if (test_result != 0 )

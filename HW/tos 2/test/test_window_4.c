@@ -13,10 +13,10 @@ void test_window_4()
 
     test_reset();
     for (i = 0; i < 26; i++) {
-	for (j = 0; j < i; j++) {
-	    output_char(&test_window, 'A' + j);
-	}
-	output_char(&test_window, '\n');
+		for (j = 0; j < i; j++) {
+		    output_char(&test_window, 'A' + j);
+		}
+		output_char(&test_window, '\n');
     }
     output_char(&test_window, '*');
 
@@ -34,5 +34,5 @@ void test_window_4()
 
     check_screen_output(expected_output); 
     if (test_result != 0)
-	test_failed(test_result);
+		test_failed(test_result);
 }

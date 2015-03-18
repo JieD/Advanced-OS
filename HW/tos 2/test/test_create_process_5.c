@@ -74,7 +74,7 @@ void test_create_process_5()
 
     //remove the third created process
     remove_ready_queue_by_name("Test process C");
-    kprintf("Removed Test Process C.\n");
+    kprintf("Removed Test Process C.\n\n");
     check_num_proc_on_ready_queue(1);
     check_process(boot_name, STATE_READY, TRUE);
     check_process("Test process A", STATE_READY, FALSE);
@@ -82,5 +82,6 @@ void test_create_process_5()
     check_process("Test process C", STATE_READY, FALSE);
     if (test_result != 0)
        test_failed(test_result);
+    print_all_processes(kernel_window);
 }
 

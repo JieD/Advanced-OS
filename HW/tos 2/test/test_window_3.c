@@ -12,10 +12,10 @@ void test_window_3()
 
     test_reset();
     for (i = 0; i < 30; i++) {
-	for (j = 0; j < i; j++) {
-	    output_char(kernel_window, '*');
-	}
-	output_char(kernel_window, '\n');
+		for (j = 0; j < i; j++) {
+		    output_char(kernel_window, '*');
+		}
+		output_char(kernel_window, '\n');
     }
 
     char* expected_output[] = {

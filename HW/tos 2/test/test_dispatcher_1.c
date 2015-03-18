@@ -12,7 +12,7 @@ void test_dispatcher_1_process_a(PROCESS self, PARAM param)
 }
 
 /*
- * Create a new process and at it to the ready queue. There should
+ * Create a new process and add it to the ready queue. There should
  * be two ready processes, but since we don't do a resign(), no
  * context switch happens.
  */
