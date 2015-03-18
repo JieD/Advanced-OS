@@ -5,12 +5,6 @@
 PCB pcb[MAX_PROCS];
 PCB *next_free_pcb; // PCB* == PROCESS
 
-void push(x)
-{
-	esp -= 4;
-	poke_l(esp, x);
-}
-
 /*
  * Steps:
  * Allocates an available PCB entry
@@ -44,19 +38,27 @@ PORT create_process (void (*ptr_to_new_proc) (PROCESS, PARAM),
 	// new_proc->esp = 640 - (new_proc - pcb) * 30;
 	/* Compute linear address of new process' system stack */
     esp = (640 - (new_proc - pcb) * 16) * 1024;
-    push(param);
-    push(new_proc);
-    push(0);
-    push(ptr_to_new_proc); // EIP
-    push(0);
-    push(0);
-    push(0);
-    push(0);
-    push(0);
-    push(0);
-    push(0);
-    new_proc->esp = esp;
 
+// define macro, '\' is line splicing for preprocessing
+#define PUSH(x)    esp -= 4; \
+                   poke_l (esp, (LONG) x);
+
+    /* Initialize the stack for the new process */
+    PUSH (param);		/* First data */
+    PUSH (new_proc);		/* Self */
+    PUSH (0);			/* Dummy return address */
+    PUSH (ptr_to_new_proc);	/* EIP -> Entry point of new process */
+    PUSH (0);			/* EAX */
+    PUSH (0);			/* ECX */
+    PUSH (0);			/* EDX */
+    PUSH (0);			/* EBX */
+    PUSH (0);			/* EBP */
+    PUSH (0);			/* ESI */
+    PUSH (0);			/* EDI */
+    
+#undef PUSH
+
+    new_proc->esp = esp;
     add_ready_queue(new_proc);
     return NULL;
 }
@@ -68,6 +70,31 @@ PROCESS fork()
     return (PROCESS) NULL;
 }
 
+void print_process_head(WINDOW* wnd)
+{
+	wprintf(wnd, "                        TOS Process Table        \n");
+	wprintf(wnd, "Name                     State                 Prio Active\n");
+	wprintf(wnd, "---------------------------------------------------------------------\n");
+}
+
+void print_process_info(WINDOW* wnd, PROCESS p)
+{
+	static const char *state[] = 
+	{ "READY          ",
+	  "SEND_BLOCKED   ",
+	  "REPLY_BLOCKED  ",
+	  "RECEIVE_BLOCKED",
+	  "MESSAGE_BLOCKED",
+	  "INTR_BLOCKED   "
+	};
+	
+	wprintf(wnd, "%-25s", p->name);
+	wprintf(wnd, "%-22s", state[p->state]);
+	wprintf(wnd, "%-5d", p->priority);
+	/* Check for active_proc */
+    if (p == active_proc) wprintf(wnd, "  *  ");
+	wprintf(wnd, "\n");
+}
 
 
 /*
@@ -76,7 +103,8 @@ PROCESS fork()
  */
 void print_process(WINDOW* wnd, PROCESS p)
 {
-
+	print_process_head(wnd);
+	print_process_info(wnd, p);
 }
 
 /*
@@ -84,11 +112,27 @@ void print_process(WINDOW* wnd, PROCESS p)
  */
 void print_all_processes(WINDOW* wnd)
 {
+	/* int i;
+	PCB process;
+	print_process_head(wnd);
+	for(i = 0; i < MAX_PROCS; i++) {
+		process = pcb[i];
+		if(process.used) {
+			print_process_info(wnd, &process);
+		}
+	} */
+	int i;
+    PCB* p = pcb;
+    print_process_head(wnd);
+    for (i = 0; i < MAX_PROCS; i++, p++) {
+		if (p->used) print_process_info(wnd, p);
+    }
 }
 
 
 /**
  * Create a list of free PCBs
+ * The first entry is the boot process.
  */
 void init_process()
 {
@@ -100,9 +144,9 @@ void init_process()
 		pcb[i].used = FALSE;
 
 	// init the free PCBs (the first pcb will be reserved for boot process)
-	for(int i = 1; i < MAX_PROCS - 1; i++)
+	for(i = 1; i < MAX_PROCS - 1; i++)
 		pcb[i].next = &pcb[i+1];
-		pcb[MAX_PROCS - 1] = NULL;
+	pcb[MAX_PROCS - 1].next = NULL; // special value signify no PCB available
 	next_free_pcb = &pcb[1];
 
 	// init the first PCB as the boot process
@@ -111,6 +155,6 @@ void init_process()
 	pcb[0].used = TRUE;
 	pcb[0].state = STATE_READY;
 	pcb[0].priority = 1;
-	pcb[0].first_port = NULL;
+	pcb[0].first_port = NULL; // why NULL?
 	pcb[0].name = "Boot process";
 }

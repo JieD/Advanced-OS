@@ -43,36 +43,36 @@ void draw_maze_char(char maze_char)
     // For details of PC-ASCII characters see:
     // http://www.jimprice.com/jim-asc.shtml
     switch (maze_char) {
-    case '|':
-	ch = 0xB3;
-	break;
-    case '-':
-	ch = 0xC4;
-	break;
-    case 'r':
-	ch = 0xDA;
-	break;
-    case 'i':
-	ch = 0xBF;
-	break;
-    case 'L':
-	ch = 0xC0;
-	break;
-    case 'l':
-	ch = 0xD9;
-	break;
-    case 'T':
-	ch = 0xC2;
-	break;
-    case 't':
-	ch = 0xC1;
-	break;
-    case 'E':
-	ch = 0xC3;
-	break;
-    case 'e':
-	ch = 0xB4;
-	break;
+        case '|':
+        	ch = 0xB3;
+        	break;
+        case '-':
+        	ch = 0xC4;
+        	break;
+        case 'r':
+        	ch = 0xDA;
+        	break;
+        case 'i':
+        	ch = 0xBF;
+        	break;
+        case 'L':
+        	ch = 0xC0;
+        	break;
+        case 'l':
+        	ch = 0xD9;
+        	break;
+        case 'T':
+        	ch = 0xC2;
+        	break;
+        case 't':
+        	ch = 0xC1;
+        	break;
+        case 'E':
+        	ch = 0xC3;
+        	break;
+        case 'e':
+        	ch = 0xB4;
+        	break;
     }
     output_char(pacman_wnd, ch);
 }
@@ -86,14 +86,14 @@ void draw_maze()
     clear_window(pacman_wnd);
     y = 0;
     while (maze[y] != NULL) {
-	char* row = maze[y];
-	x = 0;
-	while (row[x] != '\0') {
-	    char ch = row[x];
-	    draw_maze_char(ch);
-	    x++;
-	}
-	y++;
+    	char* row = maze[y];
+    	x = 0;
+    	while (row[x] != '\0') {
+    	    char ch = row[x];
+    	    draw_maze_char(ch);
+    	    x++;
+    	}
+    	y++;
     }
     wprintf(pacman_wnd, "PacMan ");
 }
