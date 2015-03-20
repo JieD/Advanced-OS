@@ -88,12 +88,13 @@ void remove_ready_queue (PROCESS proc)
 	    ready_lists_state &= ~(1 << current_priority);
 	}
 	else {
-		ready_queue[current_priority] = proc->next;
+		if (ready_queue[current_priority] == proc)
+			ready_queue[current_priority] = proc->next;
 		proc->prev->next = proc->next;
 		proc->next->prev = proc->prev;
 	}
-	proc->prev = NULL;
-	proc->next = NULL;
+	// proc->prev = NULL;
+	// proc->next = NULL;
 }
 
 /*
@@ -104,7 +105,7 @@ BOOL is_bit_set(unsigned value, unsigned bitindex)
     return (value & (1 << bitindex)) != 0;
 }
 
-int get_highest_priority(unsigned value, unsigned current_priority)
+int get_highest_priority(unsigned value)
 {
     int i;
     for(i = MAX_READY_QUEUES - 1; i >= current_priority; i--)
@@ -131,7 +132,7 @@ PROCESS dispatcher()
 	int current_priority, highest_priority;
 	PROCESS candidate;
 	current_priority = active_proc->priority;
-	highest_priority = get_highest_priority(ready_lists_state, current_priority);
+	highest_priority = get_highest_priority(ready_lists_state, 0);
 	assert((highest_priority >= 0) && (highest_priority <= 7));
 	if(highest_priority == current_priority)
 		candidate = active_proc->next;
@@ -145,7 +146,7 @@ PROCESS dispatcher()
  * since we are manipulating stack directly
  */
 void check_active() {
-	assert(active_proc !=  NULL);
+	assert(active_proc->magic == MAGIC_PCB);
 }
 
 /*
