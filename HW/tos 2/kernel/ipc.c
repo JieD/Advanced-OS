@@ -1,7 +1,7 @@
 
 #include <kernel.h>
 
-_PORT_DEF port[MAX_PORTS];
+PORT_DEF port[MAX_PORTS];
 PORT next_free_port;
 
 void add_to_block_list(PORT port, PROCESS sender);
@@ -28,21 +28,21 @@ PORT create_new_port (PROCESS owner)
 {
 	PORT new_port;
 	check_valid_process(owner);
-	if(next_free_port != NULL)
+	if(next_free_port != NULL) {
 		new_port = next_free_port;
-		next_free_port = next_port->next;
+		next_free_port = new_port->next;
 
 		new_port->used = TRUE;
 		new_port->open = TRUE;
 		new_port->owner = owner;
 
-		if(owner->first_port == NULL)
-			owner->first_port = new_port; // Save the pointer to this first port in PCB.first_port
-			new_port->next = NULL;
-		else
+		if(owner->first_port == NULL) {
+			new_port->next = NULL;			
+		} else {
 			new_port->next = owner->first_port;
-			owner->first_port = new_port;
-		
+		}
+		owner->first_port = new_port; // Save the pointer to this first port in PCB.first_port
+	}		
 	return new_port;
 }
 
@@ -53,7 +53,7 @@ PORT create_new_port (PROCESS owner)
 void open_port (PORT port)
 {
 	check_valid_port(port);
-	port->state = TRUE;
+	port->open = TRUE;
 }
 
 
@@ -64,7 +64,7 @@ void open_port (PORT port)
 void close_port (PORT port)
 {
 	check_valid_port(port);
-	port->state = FALSE;
+	port->open = FALSE;
 }
 
 /**
@@ -86,16 +86,19 @@ void send (PORT dest_port, void* data)
 	receiver = dest_port->owner;
 	check_valid_process(receiver);
 
-	if ((receiver->state == STATE_RECEIVE_BLOCKED && (dest_port->open == TRUE)) 
-		receiver->param_proc = active_proc;
-		receiver->param_data = data;
+	if ((receiver->state == STATE_RECEIVE_BLOCKED) && (dest_port->open == TRUE)) {
+		// receiver is ready - received blocked. Message is delivered immediately
+		receiver->param_proc = active_proc; 
+		receiver->param_data = data; // pass the data
 		add_ready_queue(receiver);
-		active_proc.state = STATE_REPLY_BLOCKED;
-	else // receiver is not ready
+		active_proc->state = STATE_REPLY_BLOCKED;
+	} else { // receiver is not ready. get on to the send block list of the port
+		active_proc->param_data = data; // save the data
 		add_to_block_list(dest_port, active_proc);
-		active_proc.state = STATE_SEND_BLOCKED;	
+		active_proc->state = STATE_SEND_BLOCKED;
+	}	
 
-	active_proc->param_data = data;
+	//active_proc->param_data = data;
 	remove_ready_queue(active_proc);
 	resign();	 
 }
@@ -118,26 +121,18 @@ void message (PORT dest_port, void* data)
 	receiver = dest_port->owner;
 	check_valid_process(receiver);
 
-	if ((receiver.state == STATE_RECEIVE_BLOCKED && (dest_port.open == TRUE)) 
+	if ((receiver->state == STATE_RECEIVE_BLOCKED) && (dest_port->open == TRUE)) {
 		receiver->param_proc = active_proc;
 		receiver->param_data = data;
 		add_ready_queue(receiver);
-	else // receiver is not ready
+	} else { // receiver is not ready
 		add_to_block_list(dest_port, active_proc);
-		active_proc.state = STATE_MESSAGE_BLOCKED;		
+		active_proc->state = STATE_MESSAGE_BLOCKED;		
 		active_proc->param_data = data;
 		remove_ready_queue(active_proc);
+	}
 
 	resign(); 
-}
-
-BOOL check_message_waiting()
-{
-	PORT port;
-	port = active_proc.first_port;
-	block_head = port.blocked_list_head;
-	if(block_head == NULL)
-
 }
 
 /**
@@ -165,13 +160,15 @@ void* receive (PROCESS* sender)
 	data = NULL;
 
 	// get the first available port
-	while(port != NULL)
+	while(port != NULL) {
 		check_valid_port(port);
-		if(port->open && (port->blocked_list_head != NULL))
-			break
+		if(port->open && (port->blocked_list_head != NULL)) {
+			break;
+		}
 		port = port->next;
+	}
 
-	if(port != NULL)	// message pending
+	if(port != NULL) {	// message pending
 		source = port->blocked_list_head;
 		check_valid_process(source);
 
@@ -179,20 +176,22 @@ void* receive (PROCESS* sender)
 		data = source->param_data;
 		remove_from_block_list(port);
 
-		if(source->state == STATE_MESSAGE_BLOCKED)
+		if(source->state == STATE_MESSAGE_BLOCKED) {
 			add_ready_queue(source);
 			return data;
-		else if(source->state == STATE_SEND_BLOCKED)
-			source->state == STATE_REPLY_BLOCKED;
-			return data;					
-	else   // no message pending
+		} else if (source->state == STATE_SEND_BLOCKED) {
+			source->state = STATE_REPLY_BLOCKED; 
+			return data;			
+		}					
+	} else {   // no message pending
 		active_proc->param_data = data;
-		active_proc->state = STATE_RECEIVED_BLOCKED;
+		active_proc->state = STATE_RECEIVE_BLOCKED;
 		remove_ready_queue(active_proc);
 		resign();
-	    *sender = active_proc->param_proc;
+	    *sender = active_proc->param_proc; // data has already passed to receiver
 	    data = active_proc->param_data;
 	    return data;
+	}
 }
 
 /**
@@ -229,30 +228,27 @@ void init_ipc()
 
 void add_to_block_list(PORT port, PROCESS sender)
 {
-	PORT head, tail;
-	head = port.blocked_list_head;
-	tail = port.blocked_list_tail;
-	if(head == NULL) // empty list
-		head = sender;
+	check_valid_port(port);
+	check_valid_process(sender);
+	if(port->blocked_list_head == NULL) // empty list
+		port->blocked_list_head = sender;
 	else // list is not empty, add to tail
-		tail->next_blocked = sender;
-	tail = sender;
+		port->blocked_list_tail->next_blocked = sender;
+	port->blocked_list_tail = sender;
 	sender->next_blocked = NULL;
 }
 
 void remove_from_block_list(PORT port)
 {
-	PORT head, tail;
-	head = port.blocked_list_head;
-	tail = port.blocked_list_tail;
-	head = head->next_blocked;
-	if(head == NULL)
-		tail = NULL;
+	check_valid_port(port);
+	port->blocked_list_head = port->blocked_list_head->next_blocked;
+	if(port->blocked_list_head == NULL)
+		port->blocked_list_tail = NULL;
 }
 
 void check_valid_port(PORT port)
 {
-	assert(dest_port->magic == MAGIC_PORT);
+	assert(port->magic == MAGIC_PORT);
 }
 
 void check_valid_process(PROCESS process)
