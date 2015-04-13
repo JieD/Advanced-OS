@@ -18,8 +18,8 @@ void test_ipc_3_sender_process(PROCESS self, PARAM param)
  
     check_process("Receiver", STATE_RECEIVE_BLOCKED, FALSE);
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(48); 
+	   print_all_processes(kernel_window);
+	   test_failed(48); 
     }
  
     kprintf("%s: sending a message using send()...\n",
@@ -60,8 +60,8 @@ void test_ipc_3_receiver_process(PROCESS self, PARAM param)
      */
     check_process("Sender", STATE_READY, TRUE);
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     kprintf("%s: receiving the first message...\n", self->name);
@@ -76,23 +76,23 @@ void test_ipc_3_receiver_process(PROCESS self, PARAM param)
 
     check_process("Receiver", STATE_READY, TRUE);
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(53);
+	   print_all_processes(kernel_window);
+	   test_failed(53);
     }
 
     // Sender should now be REPLY_BLOCKED and off ready queue
     check_process("Sender", STATE_REPLY_BLOCKED, FALSE);
     if (test_result == 13) {
-	print_all_processes(kernel_window);
-	test_failed(50);
+	   print_all_processes(kernel_window);
+	   test_failed(50);
     }
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(51);
+	   print_all_processes(kernel_window);
+	   test_failed(51);
     }
 
     if (*data != 42)
-	test_failed(41);
+	   test_failed(41);
 
     *data = 11;
     reply(sender);
@@ -114,18 +114,18 @@ void test_ipc_3_receiver_process(PROCESS self, PARAM param)
     // Sender should now be STATE_READY and on ready queue
     check_process("Sender", STATE_READY, TRUE);
     if (test_result == 13) {
-	print_all_processes(kernel_window);
-	test_failed(55);
+	   print_all_processes(kernel_window);
+	   test_failed(55);
     }
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(57);
+	   print_all_processes(kernel_window);
+	   test_failed(57);
     }
 
     if (*data == 11)
-	test_failed(44);
+	   test_failed(44);
     if (*data != 24)
-	test_failed(41);
+	   test_failed(41);
     
     /* We do the third receive. Since there is no message pending,
      * this process will become RECEIVE_BLOCKED so that the sender
