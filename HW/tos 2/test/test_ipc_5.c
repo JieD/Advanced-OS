@@ -11,14 +11,14 @@ void test_ipc_5_first_sender_process(PROCESS self, PARAM param)
   
     check_process("Sender 3", STATE_MESSAGE_BLOCKED, FALSE); 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(43);
+	   print_all_processes(kernel_window);
+	   test_failed(43);
     }
     check_process("Receiver", STATE_RECEIVE_BLOCKED, FALSE); 
     check_process("Sender 2", STATE_READY, TRUE); 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     kprintf("%s: sending a message to the second port using send()...\n", 
@@ -35,8 +35,8 @@ void test_ipc_5_first_sender_process(PROCESS self, PARAM param)
     check_process("Sender 2", STATE_READY, TRUE);
 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     return_to_boot();
@@ -52,8 +52,8 @@ void test_ipc_5_second_sender_process(PROCESS self, PARAM param)
     check_process("Sender 1", STATE_REPLY_BLOCKED, FALSE); 
 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     kprintf("%s: sending a message to the second port using message()...\n", 
@@ -72,8 +72,8 @@ void test_ipc_5_third_sender_process(PROCESS self, PARAM param)
     check_process("Sender 1", STATE_READY, TRUE); 
 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     kprintf("%s: sending a message to the first port using message()...\n", 
@@ -100,12 +100,12 @@ void test_ipc_5_receiver_process(PROCESS self, PARAM param)
 
     check_port(receiver_port1, self->name, FALSE);
     if (test_result != 0)
-	test_failed(test_result);
+	   test_failed(test_result);
 
     receiver_port2 = create_port();
     check_port(receiver_port2, self->name, TRUE);
     if (test_result != 0)
-	test_failed(test_result);
+	   test_failed(test_result);
 
     create_process(test_ipc_5_first_sender_process, 6,
 		   (PARAM) receiver_port2, "Sender 1");
@@ -133,8 +133,8 @@ void test_ipc_5_receiver_process(PROCESS self, PARAM param)
     check_process("Sender 1", STATE_REPLY_BLOCKED, FALSE); 
 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     /*
@@ -147,19 +147,19 @@ void test_ipc_5_receiver_process(PROCESS self, PARAM param)
 	    self->name, sender2->name, *data2);
 
     if (string_compare(sender2->name, "Sender 3") == 1)
-	test_failed(60);
+	   test_failed(60);
     if (string_compare(sender2->name, "Sender 1") == 1)
-	test_failed(44);
+	   test_failed(44);
     if (string_compare(sender2->name, "Sender 2") != 1)
-	test_failed(58);
+	   test_failed(58);
 
     check_process("Sender 3", STATE_MESSAGE_BLOCKED, FALSE); 
     check_process("Sender 2", STATE_READY, TRUE); 
     check_process("Sender 1", STATE_REPLY_BLOCKED, FALSE); 
 
     if (test_result != 0) {
-	print_all_processes(kernel_window);
-	test_failed(test_result);
+	   print_all_processes(kernel_window);
+	   test_failed(test_result);
     }
 
     kprintf("%s: replying %s...\n", self->name, sender1->name);
