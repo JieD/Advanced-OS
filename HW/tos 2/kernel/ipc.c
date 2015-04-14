@@ -16,7 +16,6 @@ void check_valid_process(PROCESS process);
  */
 PORT create_port()
 {
-
 	return create_new_port(active_proc);
 }
 
@@ -32,6 +31,7 @@ PORT create_new_port (PROCESS owner)
 		new_port = next_free_port;
 		next_free_port = new_port->next;
 
+		new_port->magic = MAGIC_PORT;
 		new_port->used = TRUE;
 		new_port->open = TRUE;
 		new_port->owner = owner;
@@ -211,7 +211,7 @@ void init_ipc()
 	int i;
 	next_free_port = port;
 
-	for(i = 0; i < MAX_PORTS - 1; i++)
+	for(i = 0; i < MAX_PORTS - 1; i++) {
 		port[i].magic = MAGIC_PORT;
 		port[i].used = FALSE;
 		// port[i].open = FALSE; ?
@@ -220,6 +220,7 @@ void init_ipc()
 		// port[i].blocked_list_head = NULL;
 		// port[i].blocked_list_tail = NULL;
 		port[i].next = &port[i + 1];
+	}
 
 	port[MAX_PORTS - 1].magic = MAGIC_PORT;
 	port[MAX_PORTS - 1].used  = FALSE;   
