@@ -40,6 +40,9 @@ unsigned ready_lists_state;
 void add_ready_queue (PROCESS proc)
 {
 	unsigned short current_priority;
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
 	assert (proc->magic = MAGIC_PCB);
 	current_priority = proc->priority;
 
@@ -57,6 +60,7 @@ void add_ready_queue (PROCESS proc)
         ready_queue[current_priority]->prev = proc;
     }
     proc->state = STATE_READY;
+    ENABLE_INTR(saved_if);
 }
 
 
@@ -79,6 +83,9 @@ void add_ready_queue (PROCESS proc)
 void remove_ready_queue (PROCESS proc)
 {
 	unsigned short current_priority;
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
 	assert (proc->magic = MAGIC_PCB);
 	current_priority = proc->priority;
 
@@ -93,6 +100,9 @@ void remove_ready_queue (PROCESS proc)
 		proc->prev->next = proc->next;
 		proc->next->prev = proc->prev;
 	}
+	ENABLE_INTR(saved_if);
+	
+	// cannot have code below since the implementaion is not a real round-robin
 	// proc->prev = NULL;
 	// proc->next = NULL;
 }
@@ -166,7 +176,15 @@ void check_active() {
  */
 void resign()
 {
-	// save context
+	// save context for inter-segment jump
+	asm("pushfl");
+	asm("cli");
+	asm("popl %eax");
+	asm("xchgl (%esp),%eax");
+    asm("push %cs");
+    asm("pushl %eax");
+
+    // save context for intra-segment jump
 	asm("pushl %eax");
 	asm("pushl %ecx");
 	asm("pushl %edx");
@@ -190,7 +208,8 @@ void resign()
     asm("popl %ecx");
     asm("popl %eax");
 
-    asm("ret"); // pop %EIP, resume process to where it was stopped
+    // asm("ret"); // pop %EIP, resume process to where it was stopped
+    asm("iret");
 }
 
 
