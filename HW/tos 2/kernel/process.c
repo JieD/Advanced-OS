@@ -22,12 +22,15 @@ PORT create_process (void (*ptr_to_new_proc) (PROCESS, PARAM),
 	MEM_ADDR esp;
 	PROCESS new_proc;
 	PORT new_port;
+	volatile int saved_if;
 
+	DISABLE_INTR(saved_if);
 	assert(prio < MAX_READY_QUEUES);
 	assert(next_free_pcb != NULL); // pcbs are not all used
 
 	new_proc = next_free_pcb;
 	next_free_pcb = new_proc -> next; 
+	ENABLE_INTR(saved_if);
 
 	new_proc->magic = MAGIC_PCB;
 	new_proc->used = TRUE;
@@ -50,6 +53,9 @@ PORT create_process (void (*ptr_to_new_proc) (PROCESS, PARAM),
     PUSH (param);		/* First data */
     PUSH (new_proc);		/* Self */
     PUSH (0);			/* Dummy return address */
+    if (interrupts_initialized) PUSH (512); /* Avoid enable interrupts when they are not initialized */
+    else PUSH(0);
+    PUSH (CODE_SELECTOR);
     PUSH (ptr_to_new_proc);	/* EIP -> Entry point of new process */
     PUSH (0);			/* EAX */
     PUSH (0);			/* ECX */
