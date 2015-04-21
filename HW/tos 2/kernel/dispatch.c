@@ -101,7 +101,7 @@ void remove_ready_queue (PROCESS proc)
 		proc->next->prev = proc->prev;
 	}
 	ENABLE_INTR(saved_if);
-	
+
 	// cannot have code below since the implementaion is not a real round-robin
 	// proc->prev = NULL;
 	// proc->next = NULL;
@@ -140,7 +140,10 @@ int get_highest_priority(unsigned value)
 PROCESS dispatcher()
 {
 	int current_priority, highest_priority;
+	volatile int saved_if;
 	PROCESS candidate;
+
+	DISABLE_INTR(saved_if);
 	current_priority = active_proc->priority;
 	highest_priority = get_highest_priority(ready_lists_state, 0);
 	assert((highest_priority >= 0) && (highest_priority <= 7));
@@ -148,6 +151,7 @@ PROCESS dispatcher()
 		candidate = active_proc->next;
 	else
 		candidate = ready_queue[highest_priority];
+	ENABLE_INTR(saved_if);
 	return candidate;
 }
 
