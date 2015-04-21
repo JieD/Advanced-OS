@@ -69,10 +69,14 @@ void show_cursor(WINDOW* wnd)
 /* clear the window content and move the cursor to the top left corner (0,0) */
 void clear_window(WINDOW* wnd)
 {
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
     clear_screen(wnd);
     wnd->cursor_x = 0;
     wnd->cursor_y = 0;
     show_cursor(wnd);
+    ENABLE_INTR(saved_if);
 }
 
 void copy_w(MEM_ADDR src, MEM_ADDR des) 
@@ -167,8 +171,12 @@ void output_char(WINDOW* wnd, unsigned char c)
 void output_string(WINDOW* wnd, const char *str)
 {
     char c;
+    volatile int saved_if;
+
+    DISABLE_INTR(saved_if);
     while(c = *str++)
         output_char(wnd, c);
+    ENABLE_INTR(saved_if);
 }
 
 
