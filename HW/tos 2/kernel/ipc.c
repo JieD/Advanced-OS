@@ -25,7 +25,10 @@ PORT create_port()
  */
 PORT create_new_port (PROCESS owner)
 {
+	volatile int saved_if;
 	PORT new_port;
+
+	DISABLE_INTR(saved_if);
 	check_valid_process(owner);
 	if(next_free_port != NULL) {
 		new_port = next_free_port;
@@ -43,6 +46,7 @@ PORT create_new_port (PROCESS owner)
 		}
 		owner->first_port = new_port; // Save the pointer to this first port in PCB.first_port
 	}		
+	ENABLE_INTR(saved_if);
 	return new_port;
 }
 
@@ -82,6 +86,9 @@ void close_port (PORT port)
 void send (PORT dest_port, void* data)
 {
 	PROCESS receiver;
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
 	check_valid_port(dest_port);
 	receiver = dest_port->owner;
 	check_valid_process(receiver);
@@ -101,6 +108,7 @@ void send (PORT dest_port, void* data)
 	//active_proc->param_data = data;
 	remove_ready_queue(active_proc);
 	resign();	 
+	ENABLE_INTR(saved_if);
 }
 
 /**
@@ -117,6 +125,9 @@ void send (PORT dest_port, void* data)
 void message (PORT dest_port, void* data)
 {
 	PROCESS receiver;
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
 	check_valid_port(dest_port);
 	receiver = dest_port->owner;
 	check_valid_process(receiver);
@@ -133,6 +144,7 @@ void message (PORT dest_port, void* data)
 	}
 
 	resign(); 
+	ENABLE_INTR(saved_if);
 }
 
 /**
@@ -156,6 +168,9 @@ void* receive (PROCESS* sender)
 	PORT port;
 	PROCESS source;
 	void *data;
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
 	port = active_proc->first_port;
 	data = NULL;
 
@@ -178,9 +193,11 @@ void* receive (PROCESS* sender)
 
 		if(source->state == STATE_MESSAGE_BLOCKED) {
 			add_ready_queue(source);
+			ENABLE_INTR(saved_if);
 			return data;
 		} else if (source->state == STATE_SEND_BLOCKED) {
 			source->state = STATE_REPLY_BLOCKED; 
+			ENABLE_INTR(saved_if);
 			return data;			
 		}					
 	} else {   // no message pending
@@ -190,6 +207,7 @@ void* receive (PROCESS* sender)
 		resign();
 	    *sender = active_proc->param_proc; // data has already passed to receiver
 	    data = active_proc->param_data;
+	    ENABLE_INTR(saved_if);
 	    return data;
 	}
 }
@@ -200,9 +218,14 @@ void* receive (PROCESS* sender)
  */
 void reply (PROCESS sender)
 {
-	if (sender->state == STATE_REPLY_BLOCKED)
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
+	if (sender->state == STATE_REPLY_BLOCKED) {
 		add_ready_queue(sender);
 		resign();
+	}
+	ENABLE_INTR(saved_if);
 }
 
 
@@ -229,6 +252,9 @@ void init_ipc()
 
 void add_to_block_list(PORT port, PROCESS sender)
 {
+	volatile int saved_if;
+	DISABLE_INTR(saved_if);
+
 	check_valid_port(port);
 	check_valid_process(sender);
 	if(port->blocked_list_head == NULL) // empty list
@@ -237,14 +263,21 @@ void add_to_block_list(PORT port, PROCESS sender)
 		port->blocked_list_tail->next_blocked = sender;
 	port->blocked_list_tail = sender;
 	sender->next_blocked = NULL;
+
+	ENABLE_INTR(saved_if);
 }
 
 void remove_from_block_list(PORT port)
 {
+	volatile int saved_if;
+	DISABLE_INTR(saved_if);
+
 	check_valid_port(port);
 	port->blocked_list_head = port->blocked_list_head->next_blocked;
 	if(port->blocked_list_head == NULL)
 		port->blocked_list_tail = NULL;
+
+	ENABLE_INTR(saved_if);
 }
 
 void check_valid_port(PORT port)
