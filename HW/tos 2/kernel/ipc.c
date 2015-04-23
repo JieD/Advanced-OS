@@ -159,9 +159,8 @@ void message (PORT dest_port, void* data)
  *             Change state of sender to STATE_READY;
  * 	       if (sender is STATE_SEND_BLOCKED)
  *	           Change state of sender to STATE_REPLY_BLOCKED;
- *	    } else {
- *	       Change to STATE_RECEIVED_BLOCKED;
- *	    }
+ *	    } 
+ *	    Change to STATE_RECEIVED_BLOCKED;
  */
 void* receive (PROCESS* sender)
 {
@@ -187,7 +186,7 @@ void* receive (PROCESS* sender)
 		source = port->blocked_list_head;
 		check_valid_process(source);
 
-		sender = &source; // or *sender = source;
+		*sender = source; // cannot be sender = &source
 		data = source->param_data;
 		remove_from_block_list(port);
 
@@ -200,16 +199,16 @@ void* receive (PROCESS* sender)
 			ENABLE_INTR(saved_if);
 			return data;			
 		}					
-	} else {   // no message pending
-		active_proc->param_data = data;
-		active_proc->state = STATE_RECEIVE_BLOCKED;
-		remove_ready_queue(active_proc);
-		resign();
-	    *sender = active_proc->param_proc; // data has already passed to receiver
-	    data = active_proc->param_data;
-	    ENABLE_INTR(saved_if);
-	    return data;
-	}
+	} 
+	// no message pending - no matter whether port is open or not
+	active_proc->param_data = data;
+	active_proc->state = STATE_RECEIVE_BLOCKED;
+	remove_ready_queue(active_proc);
+	resign();
+    *sender = active_proc->param_proc; // data has already passed to receiver
+    data = active_proc->param_data;
+    ENABLE_INTR(saved_if);
+    return data;
 }
 
 /**
