@@ -143,7 +143,7 @@ void dummy_isr()
 }
 
 // helper function used in isr
-void check_active() {
+void check() {
     assert(active_proc->magic == MAGIC_PCB);
 }
 
@@ -160,7 +160,7 @@ void dummy_isr_timer ()
     // enable preemption
     asm ("movl %%esp,%0" : "=r" (active_proc->esp) : );
     active_proc = dispatcher();
-    check_active();  
+    check();  
     asm ("movl %0,%%esp" : : "r" (active_proc->esp));
 
     asm ("movb  $0x20,%al");
@@ -168,7 +168,6 @@ void dummy_isr_timer ()
     asm ("pop %edi; pop %esi; pop %ebp; pop %ebx");
     asm ("pop %edx; pop %ecx; pop %eax");
     asm ("iret");
-}
 }
 
 
@@ -311,6 +310,7 @@ void init_interrupts()
     init_idt_entry(13, exception13);
     init_idt_entry(14, exception14);
     init_idt_entry(15, exception15);
+    init_idt_entry (TIMER_IRQ, isr_timer);
 
     re_program_interrupt_controller();
     
