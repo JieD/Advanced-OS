@@ -53,8 +53,11 @@ PORT create_process (void (*ptr_to_new_proc) (PROCESS, PARAM),
     PUSH (param);		/* First data */
     PUSH (new_proc);		/* Self */
     PUSH (0);			/* Dummy return address */
-    if (interrupts_initialized) PUSH (512); /* Avoid enable interrupts when they are not initialized */
-    else PUSH(0);
+    if (interrupts_initialized) {
+    	PUSH (512); /* Avoid enable interrupts when they are not initialized */
+    } else {
+    	PUSH(0);
+    }
     PUSH (CODE_SELECTOR);
     PUSH (ptr_to_new_proc);	/* EIP -> Entry point of new process */
     PUSH (0);			/* EAX */
