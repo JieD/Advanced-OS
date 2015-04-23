@@ -37,9 +37,9 @@ void dummy_timer_isr ()
     asm ("push %esi");
     asm ("push %edi");
     if (!counter--) {
-	counter = 20;
-	poke_b(screen_offset_for_timer_isr,
-	       peek_b(screen_offset_for_timer_isr) + 1);
+	    counter = 20;
+	    poke_b(screen_offset_for_timer_isr,
+	           peek_b(screen_offset_for_timer_isr) + 1);
         check_sum ++;
     }
     
