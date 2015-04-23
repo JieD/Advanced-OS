@@ -101,6 +101,9 @@ void copy_line(MEM_ADDR src, MEM_ADDR des, int length)
 void scroll_down(WINDOW* wnd)
 {
 	int x, y;
+	volatile int saved_if;
+
+	DISABLE_INTR(saved_if);
 	for (y = wnd->y; y < wnd->y + wnd->height - 1; y++) {
 		for (x = wnd->x; x < wnd->x + wnd->width; x++) {
 			poke_w(get_addr(x, y), peek_w(get_addr(x, y + 1)));
@@ -114,6 +117,7 @@ void scroll_down(WINDOW* wnd)
     // move cursor accordingly
 	wnd->cursor_x = 0;
     wnd->cursor_y = wnd->height - 1;
+    ENABLE_INTR(saved_if);
 }
 
 /* move the cursor to the next line
@@ -138,6 +142,9 @@ int should_move_to_next_line(WINDOW* wnd, unsigned char c)
    Note: need to check the boundary of the window, support wrap-around and scroll */
 void output_char(WINDOW* wnd, unsigned char c)
 {
+	volatile int saved_if;
+
+    DISABLE_INTR (saved_if);
 	remove_cursor(wnd);
 	switch(c) {
 		case '\n':
@@ -166,6 +173,7 @@ void output_char(WINDOW* wnd, unsigned char c)
 		scroll_down(wnd);
 		show_cursor(wnd);
 	}
+	ENABLE_INTR(saved_if);
 }
 
 void output_string(WINDOW* wnd, const char *str)
