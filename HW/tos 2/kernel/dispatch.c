@@ -118,7 +118,7 @@ BOOL is_bit_set(unsigned value, unsigned bitindex)
 int get_highest_priority(unsigned value)
 {
     int i;
-    for(i = MAX_READY_QUEUES - 1; i >= current_priority; i--)
+    for(i = MAX_READY_QUEUES - 1; i >= 0; i--)
         if(is_bit_set(value, i))
         	return i;
 }
@@ -145,7 +145,7 @@ PROCESS dispatcher()
 
 	DISABLE_INTR(saved_if);
 	current_priority = active_proc->priority;
-	highest_priority = get_highest_priority(ready_lists_state, 0);
+	highest_priority = get_highest_priority(ready_lists_state);
 	assert((highest_priority >= 0) && (highest_priority <= 7));
 	if(highest_priority == current_priority)
 		candidate = active_proc->next;
