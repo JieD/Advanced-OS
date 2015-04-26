@@ -125,6 +125,11 @@ void exception15()
     catastrophic_isr(15);
 }
 
+void exception16()
+{
+    catastrophic_isr(16);
+}
+
 
 void isr_dummy();
 void dummy_isr() 
@@ -159,6 +164,14 @@ void dummy_isr_timer ()
 
     // enable preemption
     asm ("movl %%esp,%0" : "=r" (active_proc->esp) : );
+
+    /* if a process is waiting for the interrupt, puts it back to the ready queue. */
+    p = interrupt_table[TIMER_IRQ];
+
+    if (p && p->state == STATE_INTR_BLOCKED) {
+       add_ready_queue(p);
+    }
+
     active_proc = dispatcher();
     check();  
     asm ("movl %0,%%esp" : : "r" (active_proc->esp));
@@ -206,11 +219,11 @@ void dummy_isr_keyb()
     p = interrupt_table[KEYB_IRQ];
 
     if (p == NULL) {
-	panic ("service_intr_0x61: Spurious interrupt");
+	   panic ("service_intr_0x61: Spurious interrupt");
     }
 
     if (p->state != STATE_INTR_BLOCKED) {
-	panic ("service_intr_0x61: No process waiting");
+	   panic ("service_intr_0x61: No process waiting");
     }
 
     /* Add event handler to ready queue */
@@ -239,8 +252,28 @@ void dummy_isr_keyb()
     asm ("iret");
 }
 
+
+void check_valid_wait(int intr_no) 
+{
+    assert(interrupt_table[intr_no] == NULL); // only one process can wait
+    assert(intr_no == TIMER_IRQ || intr_no == COM1_IRQ || intr_no == KEYB_IRQ);
+}
+
+
 void wait_for_interrupt (int intr_no)
 {
+    volatile int saved_if;
+    DISABLE_INTR(saved_if);
+
+    check_valid_wait(intr_no);
+    interrupt_table[intr_no] = active_proc; // record the wait
+
+    active_proc->state = STATE_INTR_BLOCKED;
+    remove_ready_queue(active_proc);
+    resign();
+    interrupt_table[intr_no] = NULL; // wait finishes
+
+    ENABLE_INTR(saved_if);
 }
 
 
@@ -310,10 +343,16 @@ void init_interrupts()
     init_idt_entry(13, exception13);
     init_idt_entry(14, exception14);
     init_idt_entry(15, exception15);
+    init_idt_entry(16, exception16);
     init_idt_entry (TIMER_IRQ, isr_timer);
 
     re_program_interrupt_controller();
     
+    // initialize interrupt_table 
+    for (i = 0; i < MAX_INTERRUPTS; i++) {
+        interrupt_table[i] = NULL;
+    }
+
     interrupts_initialized = TRUE;
     asm ("sti");
 }

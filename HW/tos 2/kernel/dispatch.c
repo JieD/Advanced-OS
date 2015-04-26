@@ -118,9 +118,10 @@ BOOL is_bit_set(unsigned value, unsigned bitindex)
 int get_highest_priority(unsigned value)
 {
     int i;
-    for(i = MAX_READY_QUEUES - 1; i >= 0; i--)
+    for(i = MAX_READY_QUEUES - 1; i >= 0; i--) {
         if(is_bit_set(value, i))
         	return i;
+    }
 }
 
 /*
