@@ -43,7 +43,7 @@ void add_ready_queue (PROCESS proc)
 	volatile int saved_if;
 
 	DISABLE_INTR(saved_if);
-	assert (proc->magic = MAGIC_PCB);
+	assert (proc->magic == MAGIC_PCB);
 	current_priority = proc->priority;
 
 	if (ready_queue[current_priority] == NULL) {
@@ -86,7 +86,7 @@ void remove_ready_queue (PROCESS proc)
 	volatile int saved_if;
 
 	DISABLE_INTR(saved_if);
-	assert (proc->magic = MAGIC_PCB);
+	assert (proc->magic == MAGIC_PCB);
 	current_priority = proc->priority;
 
 	if (proc->next == proc) {
@@ -118,9 +118,10 @@ BOOL is_bit_set(unsigned value, unsigned bitindex)
 int get_highest_priority(unsigned value)
 {
     int i;
-    for(i = MAX_READY_QUEUES - 1; i >= 0; i--)
+    for(i = MAX_READY_QUEUES - 1; i >= 0; i--) {
         if(is_bit_set(value, i))
         	return i;
+    }
 }
 
 /*

@@ -24,13 +24,13 @@ void isr_process(PROCESS self, PARAM param)
     i = 0;
     int j;
     for (j = 0; j < 30; j ++) {
-	ticks = 3;
-	while (ticks--)
-	    wait_for_interrupt(TIMER_IRQ);
-	*(screen_base + i * 2) = *(screen_base + i * 2) + 1;
-	i++;
-	if (i == 6)
-	    i = 0;
+    	ticks = 3;
+    	while (ticks--)
+    	    wait_for_interrupt(TIMER_IRQ);
+    	*(screen_base + i * 2) = *(screen_base + i * 2) + 1;
+    	i++;
+    	if (i == 6)
+    	    i = 0;
         check_sum ++;
     }
     return_to_boot();
@@ -58,13 +58,13 @@ void test_isr_3 ()
 
     PROCESS isr_pro = find_process_by_name("ISR process");
     for (i = 0; i < 600000; i++) {
-	if (isr_pro->state == STATE_INTR_BLOCKED)
-	    check_2++;
+    	if (isr_pro->state == STATE_INTR_BLOCKED)
+    	    check_2++;
 
-	*(screen_base + j * 2) = *(screen_base + j * 2) + 1;
-	j++;
-	if (j == 6)
-	    j = 0;
+    	*(screen_base + j * 2) = *(screen_base + j * 2) + 1;
+    	j++;
+    	if (j == 6)
+    	    j = 0;
     }
 
     if (check_2 == 0)

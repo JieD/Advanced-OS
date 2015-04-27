@@ -54,10 +54,10 @@ void test_timer_1_process_B(PROCESS self, PARAM param)
     int j;
     for (j = 0; j < 10; j++) {
         send(timer_port, &msg);
-	*(screen_base + i * 2) = *(screen_base + i * 2) + 1;
-	i++;
-	if (i == 6)
-	    i = 0;
+    	*(screen_base + i * 2) = *(screen_base + i * 2) + 1;
+    	i++;
+    	if (i == 6)
+    	    i = 0;
     }
 
     return_to_boot();
