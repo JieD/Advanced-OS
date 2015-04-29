@@ -14,6 +14,7 @@ void shell_process(PROCESS self, PARAM param) {
 	Keyb_Message msg;
 	clear_window(&shell_wnd);
 	print("\nType shell commands:\n");
+	print("jd@TOS>");
 
 	while (1) {
 		while (1) {
@@ -26,6 +27,7 @@ void shell_process(PROCESS self, PARAM param) {
 				execute_command(line);
 				clear_s(line);		
 				length = 0; // erase previous input
+				print("jd@TOS>");
 				break;
 				case 8: // <backspace>, adjust cursor
 				if (length) {
