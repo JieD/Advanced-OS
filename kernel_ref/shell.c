@@ -25,8 +25,6 @@ void shell_process(PROCESS self, PARAM param) {
 				print("\n");
 				execute_command(line);
 				clear_s(line);		
-				//print(line);
-				//print("\n");
 				length = 0; // erase previous input
 				break;
 				case 8: // <backspace>, adjust cursor
@@ -66,9 +64,9 @@ void execute_command(char *s) {
 	wl = 0;
 	full_length = 0;
 
-	wprintf(&shell_wnd, "original s: %s.\n", s);
+	// wprintf(&shell_wnd, "original s: %s.\n", s);
 	full_length = get_full_length(s);
-	wprintf(&shell_wnd, "full length: %d.\n", full_length);
+	//wprintf(&shell_wnd, "full length: %d.\n", full_length);
 
 	if (get_next_word(s, &start, &wl, method)) {
 		if (!s_cmp(method, "ps")) {
@@ -78,17 +76,16 @@ void execute_command(char *s) {
 		} else if (!s_cmp(method, "help")) {
 			print_help(&shell_wnd); 
 		} else if (!s_cmp(method, "sleep")) {
-			get_word_length(s, &start, &wl);
-			if (wl) {
-				char argument[wl + 1];
-				s_copy(s, method, start, wl);
-				wprintf(&shell_wnd, "argument: %s.\n", argument);
-				start += wl;
+			if (get_next_word(s, &start, &wl, argument)) {
+				int sleep_time = atoi(argument);
+				if (sleep_time) sleep(sleep_time);
 			} else {
 				wprintf(&shell_wnd, "Argument Error: Need to provide sleep time.\n");
 			}
 		}
 	}
+	clear_s(method);
+	clear_s(argument);
 	
 	/*get_word_length(s, &start, &wl);
 	if (wl) {
@@ -148,7 +145,7 @@ int get_next_word(char *s, int *start, int *length, char *word) {
 	if (get_word_length(s, start, length)) {
 		s_copy(s, word, *start, *length);
 		*start = *start + *length;
-		wprintf(&shell_wnd, "word: %s.\n", word);
+		//wprintf(&shell_wnd, "word: %s.\n", word);
 		return 1;
 	} else {
 		return 0;
@@ -170,7 +167,7 @@ int get_word_length(char *s, int *start, int *length) {
 		skip += 1;
 	}
 	*start = skip;
-	wprintf(&shell_wnd, "first skip %d, ", *start);
+	//wprintf(&shell_wnd, "first skip %d, ", *start);
 	
 	// count the word length
 	while ((*s != ' ') && *s) { 
@@ -178,10 +175,10 @@ int get_word_length(char *s, int *start, int *length) {
 		i++;
 	}
 	*length = i;
-	wprintf(&shell_wnd, "word length is %d, ", *length);
+	//wprintf(&shell_wnd, "word length is %d, ", *length);
 
 	skip += i;
-	wprintf(&shell_wnd, "next should skip %d\n", skip);
+	//wprintf(&shell_wnd, "next should skip %d\n", skip);
 	return i;
 }
 
@@ -197,7 +194,7 @@ void s_copy(char *s, char *d, int start, int length) {
 		d[i] = *s++;
 	}
 	d[length] = '\0'; // need to explicitely put '\0' at the end!
-	wprintf(&shell_wnd, "copy %d chars: %s\n", length, d);
+	//wprintf(&shell_wnd, "copy %d chars: %s\n", length, d);
 }
 
 int s_cmp(char *s, char *d) {
@@ -214,13 +211,27 @@ int clear_s(char *s) {
 	}
 }
 
+
+int atoi(char *p) {
+    int var = 0;
+    while(*p >= '0' && *p <= '9') {
+		char ch = *p++;
+		ch -= '0';
+		var *= 10;
+		var += ch;
+    }
+    return var;
+}
+
+
 void print_help(WINDOW *wnd) {
 	int i = 0;
 	char *text[] = {
-		"TOS command line guide:         \n",
-		"clear:  clear screen            \n",
-		"help :  print command line guide\n",
-		"ps   :  print all processes     \n",
+		"TOS command line guide:                    \n",
+		"clear       :  clear screen                \n",
+		"help        :  print command line guide    \n",
+		"ps          :  print all processes         \n",
+		"sleep [TIME]:  sleep for the specified time\n",
 		NULL
 	};
 	while (text[i]) {
