@@ -2,10 +2,18 @@
 
 void print(char *s);
 void execute_command(char *s);
+int get_full_length(char *s);
+int get_next_word(char *s, int *start, int *length, char *word);
+int get_word_length(char *s, int *start, int *length);
 void s_copy(char *s, char *d, int start, int length);
+int s_cmp(char *s, char *d);
+void clear_s(char *s);
+int atoi(char *p);
+void print_help(WINDOW *wnd);
 
 WINDOW shell_wnd = {0, 9, 61, 16, 0, 0, '_'};
 int MAX_LENGTH = 61;
+WINDOW* train_window;
 
 
 void shell_process(PROCESS self, PARAM param) {
@@ -84,55 +92,14 @@ void execute_command(char *s) {
 			} else {
 				wprintf(&shell_wnd, "Argument Error: Need to provide sleep time.\n");
 			}
+		} else if (!s_cmp(method, "train")) {
+			clear_window(train_window);
+			wprintf(train_window, "Start train\n");
+			init_train(train_window);
 		}
 	}
 	clear_s(method);
 	clear_s(argument);
-	
-	/*get_word_length(s, &start, &wl);
-	if (wl) {
-		//char method[wl + 1];
-		s_copy(s, method, start, wl);
-		wprintf(&shell_wnd, "method: %s.\n", method);
-		start += wl;
-
-		if (!s_cmp(method, "ps")) {
-			print_all_processes(&shell_wnd);
-		} else if (!s_cmp(method, "clear")) {
-			clear_window(&shell_wnd);
-		} else if (!s_cmp(method, "help")) {
-			print_help(&shell_wnd); 
-		} else if (!s_cmp(method, "sleep")) {
-			get_word_length(s, &start, &wl);
-			if (wl) {
-				char argument[wl + 1];
-				s_copy(s, method, start, wl);
-				wprintf(&shell_wnd, "argument: %s.\n", argument);
-				start += wl;
-			} else {
-				wprintf(&shell_wnd, "Argument Error: Need to provide sleep time.\n");
-			}
-		}
-
-	}*/
-	
-
-	//word_length(s, &start, &wl);
-	//wprintf(&shell_wnd, "skip %d, word length is %d\n", start, wl);
-
-	// start = start + wl + 1;
-	/** char *method, *args;
-	for (; i < MAX_LENGTH; i++) {
-		*method++ = *s++;
-		if (*s == ' ') { // first space
-			s++;
-			break;
-		}
-	}
-	//while (*args++ = *s++) ;
-	print("\n");
-	print(method);
-	//print(args); */
 }
 
 // get the length of the input string
@@ -207,7 +174,7 @@ int s_cmp(char *s, char *d) {
 	return *s - *d;
 }
 
-int clear_s(char *s) {
+void clear_s(char *s) {
 	while (*s) {
 		*s++ = '\0';
 	}
