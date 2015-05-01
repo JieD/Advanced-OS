@@ -13,7 +13,7 @@ void print_help(WINDOW *wnd);
 
 WINDOW shell_wnd = {0, 9, 61, 16, 0, 0, '_'};
 int MAX_LENGTH = 61;
-WINDOW* train_window;
+WINDOW* train_wnd;
 
 
 void shell_process(PROCESS self, PARAM param) {
@@ -31,6 +31,7 @@ void shell_process(PROCESS self, PARAM param) {
 			// check character
 			switch (ch) {
 				case 13: // <enter>, execute command
+				line[length] = '\0';
 				print("\n");
 				execute_command(line);
 				clear_s(line);		
@@ -93,9 +94,9 @@ void execute_command(char *s) {
 				wprintf(&shell_wnd, "Argument Error: Need to provide sleep time.\n");
 			}
 		} else if (!s_cmp(method, "train")) {
-			clear_window(train_window);
-			wprintf(train_window, "Start train\n");
-			init_train(train_window);
+			clear_window(train_wnd);
+			wprintf(train_wnd, "--------------Start--------------\n");
+			init_train(train_wnd);
 		}
 	}
 	clear_s(method);
