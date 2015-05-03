@@ -32,6 +32,7 @@ void start_3_nz();
 void start_4_nz();
 void start_3_z();
 void start_4_z();
+void rendezvous_4();
 void keep_polling(char *contact_number);
 void check_zamboni();
 void print_zamboni();
@@ -46,6 +47,9 @@ COM_Message msg;
 char buffer[4];
 char FS = '5';
 char LS = '4';
+char three = '3';
+char two = '2';
+char one = '1';
 char zero = '0';
 int configuration, zamboni = 0;
 
@@ -209,7 +213,7 @@ void clear_buffer()
 	msg.output_buffer = cmd;
 	msg.len_input_buffer = 0;   
     send(com_port, &msg);
-    short_pause();
+    //short_pause();
 }
 
 
@@ -321,7 +325,23 @@ void start_3_nz()
 
 void start_4_nz() 
 {
+	reset_switch('4', RED);
+	reset_switch('3', GREEN);
+	reset_switch('8', RED);
+	set_train_speed(&FS);
+	keep_polling("6");
+	set_train_speed(&zero);
+	change_direction();
+	set_train_speed(&FS);
+	keep_polling("12");
+	set_train_speed(&zero);
+	change_direction();
 
+	reset_switch('7', GREEN);
+	reset_switch('4', RED);
+	reset_switch('3', RED);
+	keep_polling("5");
+	set_train_speed(&zero);
 }
 
 
@@ -404,85 +424,163 @@ void start_4_z()
 	keep_polling("12");
 	wprintf(train_wnd, "trap zamboni in the inner loop\n");
 
-	// lead train to track 2
+	// lead train to track 6
 	reset_switch('4', RED);
 	reset_switch('3', GREEN);
-	set_train_speed(&FS);	
+	set_train_speed(&LS);	
 	keep_polling("6");
 	set_train_speed(&zero);
 	change_direction();
+
+	// lead train to track 2
+	set_train_speed(&LS);
+	keep_polling("2");
+	set_train_speed(&zero);
+	wprintf(train_wnd, "lead train to track 2\n");
+	reset_switch('4', GREEN);	
+
+	// keep zamboni in the outer loop, prepare rendezvous
+	reset_switch('8', GREEN);
+	reset_switch('9', GREEN);
+	
+	// check condition for rendezvous
+	avoid_danger();
+	rendezvous_4();
+
+	//lead train to track 12
+	reset_switch('8', RED);
+	set_train_speed(&FS);	
+	keep_polling("13");	
+	while (poll("13")) ; // make sure just enter the loop
+	short_pause();
+	reset_switch('8', GREEN);
+	set_train_speed(&LS);
+
+	keep_polling("12");	
+	set_train_speed(&zero);
+	reset_switch('8', GREEN);
+	change_direction();
+	wprintf(train_wnd, "lead train to track 12\n");
+
+	// lead train to track 9
+	keep_polling("7");
+	reset_switch('7', GREEN);
+	set_train_speed(&LS);
+	while(poll("12")); // since track 9 is too short, check track 12
+	long_pause();
+	set_train_speed(&zero); // stop on track 9
+	wprintf(train_wnd, "lead train to track 9\n");
+
+
+	// trap zamboni in innter loop
+	keep_polling("3");
+	reset_switch('8', RED);
+	keep_polling("12");
+	wprintf(train_wnd, "trap zamboni in the innter loop\n");
+
+	// return
+	reset_switch('4', RED);
+	reset_switch('3', RED);
+	set_train_speed(&FS);
+	keep_polling("5");
+	set_train_speed(&zero);
+	wprintf(train_wnd, "Success\n");
+
+	/* lead train to track 2
+	change_direction();
+	reset_switch('9', RED);
+	reset_switch('1', RED);
+	reset_switch('2', GREEN);
 	set_train_speed(&FS);
 	keep_polling("2");
 	set_train_speed(&zero);
 	wprintf(train_wnd, "lead train to track 2\n");
 
-	// keep zamboni in the outer loop
-	reset_switch('4', GREEN);
-	reset_switch('8', GREEN);
-	keep_polling("10");	
-
-	// wait to be as far as possible from zamboni
+	// trap zamboni in innter loop
 	reset_switch('8', RED);
-	set_train_speed(&FS);
 	keep_polling("12");
-	set_train_speed(&zero);
-	reset_switch('8', GREEN);
-	change_direction();
-
-	// rendezvous, needs to slow down
-	reset_switch('9', GREEN);
-
-	keep_polling("10");
-	set_train_speed(&FS);
-	keep_polling("14");
-	long_pause();
-	long_pause();
-	set_train_speed(&zero);
-	change_direction();
+	wprintf(train_wnd, "trap zamboni in the innter loop\n");
 
 	// return
-	keep_polling("10");
-	set_train_speed(&FS);
-
-	// check if rendezvous
-	keep_polling("14");
-	keep_polling("6");
-
-	keep_polling("16"); // trap zamboni
-	reset_switch('8', RED); 
 	reset_switch('4', RED);
 	reset_switch('3', RED);
+	set_train_speed(&FS);
+	keep_polling("6");
+	set_train_speed(&zero);
+	change_direction();
+	set_train_speed(&FS);
 	keep_polling("5");
 	set_train_speed(&zero);
+	wprintf(train_wnd, "Success\n"); */
+}
+
+// release zamboni, start train
+// check condition: if dangerous, track 12
+void avoid_danger() {	
+	//wait zamboni to be far away
+	int i = 0, close = 0;
+	keep_polling("10");	
+	keep_polling("14");
+	long_pause();
+
+	// rendezvous
+	set_train_speed(&FS);
+	long_pause();
+	keep_polling("14");
+	set_train_speed(&zero);
+	
+	// avoid zamboni (too close)
+	while (!poll("7") && !poll("6")) { 		
+		reset_switch('8', RED);
+		short_pause();
+		set_train_speed(&FS);
+
+		// make sure just enter the loop
+		while (poll("13")) ;
+		short_pause();
+		reset_switch('8', GREEN);
+		set_train_speed(&zero);
+		wprintf(train_wnd, "dangerous, back to the inner loop\n");
+
+		// start again
+		keep_polling("14");	
+		set_train_speed(&FS);
+		keep_polling("14");
+		set_train_speed(&zero);		
+	}	
+	wprintf(train_wnd, "safe to start moving\n");
 }
 
 
-void rendezvous_4(int loop) {
-	int i;
-
-	while (!poll("16")) {
-		keep_polling("10");
-		set_train_speed(&FS);
-		keep_polling("14");
-		for (i = 0; i < loop, i++) {
-			long_pause();
-		}
-		set_train_speed(&zero);
+void rendezvous_4() {
+	int i, j = 0;
+	while (poll("16")) {
 		change_direction();
 
-		// return
-		keep_polling("10");
 		set_train_speed(&FS);
+		// check train position, to ensure go to track 16
+		while (poll("14")) ;
+		set_train_speed(&zero);	
 
-		// check if rendezvous
-		keep_polling("14");
-		keep_polling("6");
+		if (j > 0) set_train_speed(&LS);
+		for (i = 0; i < j; i++) 
+			short_pause(); // safety reason, maybe too close to the intersection
+		set_train_speed(&zero);
+		j++;
+
+		change_direction();
+
+		// return to track 14 to check whether rendezvous
+		keep_polling("10");		
+		set_train_speed(&LS);
+		keep_polling("14");		
+		set_train_speed(&zero);
 	}
-	
+	wprintf(train_wnd, "rendezvous\n");
 }
 
 void keep_polling(char *contact_number) {
-	while (!poll(contact_number));
+	while (!poll(contact_number)) ;
 }
 
 
