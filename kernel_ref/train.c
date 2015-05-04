@@ -213,7 +213,7 @@ void clear_buffer()
 	msg.output_buffer = cmd;
 	msg.len_input_buffer = 0;   
     send(com_port, &msg);
-    //short_pause();
+    short_pause();
 }
 
 
@@ -555,6 +555,7 @@ void avoid_danger() {
 void rendezvous_4() {
 	int i, j = 0;
 	while (poll("16")) {
+		wprintf(train_wnd, "prepare to rendezvous\n");
 		change_direction();
 
 		set_train_speed(&FS);
@@ -562,11 +563,11 @@ void rendezvous_4() {
 		while (poll("14")) ;
 		set_train_speed(&zero);	
 
-		if (j > 0) set_train_speed(&LS);
+		if (j > 0) set_train_speed(&three);
 		for (i = 0; i < j; i++) 
 			short_pause(); // safety reason, maybe too close to the intersection
 		set_train_speed(&zero);
-		j++;
+		if (j % 2) j++;
 
 		change_direction();
 
@@ -591,6 +592,8 @@ void train_process(PROCESS self, PARAM param)
 	check_zamboni();
 	check_configuration();		
 	start_train();
+	remove_ready_queue(active_proc);
+
 	while (1);
 }
 
