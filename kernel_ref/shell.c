@@ -1,5 +1,10 @@
 #include <kernel.h>
 
+#define MAX_LENGTH 54
+#define WELCOME "\nWelcome to TOS:\n"
+#define PROMPT "jd@TOS>"
+#define PROMPT_LENGTH 7
+
 void print(char *s);
 void execute_command(char *s);
 int get_full_length(char *s);
@@ -12,17 +17,20 @@ int atoi(char *p);
 void print_help(WINDOW *wnd);
 
 WINDOW shell_wnd = {0, 9, 61, 16, 0, 0, '_'};
-int MAX_LENGTH = 61;
 WINDOW* train_wnd;
 
 
 void shell_process(PROCESS self, PARAM param) {
-	char ch, line[61]; // input buffer
+	char ch, line[MAX_LENGTH]; // input buffer
 	int length = 0;
 	Keyb_Message msg;
+	volatile int flag;
+    
+    DISABLE_INTR (flag);	
+	clear_window(train_wnd);
 	clear_window(&shell_wnd);
-	print("\nType shell commands:\n");
-	print("jd@TOS>");
+	print(WELCOME);
+	print(PROMPT);
 
 	while (1) {
 		while (1) {
@@ -43,7 +51,7 @@ void shell_process(PROCESS self, PARAM param) {
 					length--;
 					line[length] = ' ';
 					remove_cursor(&shell_wnd);	
-					move_cursor(&shell_wnd, length, shell_wnd.cursor_y);	
+					move_cursor(&shell_wnd, length + PROMPT_LENGTH, shell_wnd.cursor_y);	
 					show_cursor(&shell_wnd);
 				}
 				break;
@@ -56,6 +64,7 @@ void shell_process(PROCESS self, PARAM param) {
 			}
 		}
 	}
+	ENABLE_INTR (flag);
 }
 
 void print(char *s) {
