@@ -24,9 +24,7 @@ void shell_process(PROCESS self, PARAM param) {
 	char ch, line[MAX_LENGTH]; // input buffer
 	int length = 0;
 	Keyb_Message msg;
-	volatile int flag;
-    
-    DISABLE_INTR (flag);	
+	
 	clear_window(train_wnd);
 	clear_window(&shell_wnd);
 	print(WELCOME);
@@ -53,7 +51,7 @@ void shell_process(PROCESS self, PARAM param) {
 					remove_cursor(&shell_wnd);	
 					move_cursor(&shell_wnd, length + PROMPT_LENGTH, shell_wnd.cursor_y);	
 					show_cursor(&shell_wnd);
-				}
+				} 
 				break;
 				default: // regular character
 				if (length <= MAX_LENGTH) {	
@@ -64,7 +62,6 @@ void shell_process(PROCESS self, PARAM param) {
 			}
 		}
 	}
-	ENABLE_INTR (flag);
 }
 
 void print(char *s) {
@@ -106,6 +103,10 @@ void execute_command(char *s) {
 			clear_window(train_wnd);
 			wprintf(train_wnd, "--------------Start--------------\n");
 			init_train(train_wnd);
+		} else if (!s_cmp(method, "stop")) {
+			stop();
+		} else if (!s_cmp(method, "go")) {
+			go();
 		}
 	}
 	clear_s(method);
