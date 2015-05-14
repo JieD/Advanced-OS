@@ -28,6 +28,7 @@ PORT create_process (void (*ptr_to_new_proc) (PROCESS, PARAM),
 	assert(prio < MAX_READY_QUEUES);
 	assert(next_free_pcb != NULL); // pcbs are not all used
 
+	new_port = create_new_port(new_proc);
 	new_proc = next_free_pcb;
 	next_free_pcb = new_proc -> next; 
 	ENABLE_INTR(saved_if);
@@ -36,16 +37,16 @@ PORT create_process (void (*ptr_to_new_proc) (PROCESS, PARAM),
 	new_proc->used = TRUE;
 	new_proc->state = STATE_READY;
 	new_proc->priority = prio;
-	new_proc->first_port = NULL;
+	new_proc->first_port = new_port;
 	new_proc->name = name;
 
-	new_port = create_new_port(new_proc);
+	
 
 	// new_proc->esp = 640 - (new_proc - pcb) * 30;
 	/* Compute linear address of new process' system stack */
     esp = (640 - (new_proc - pcb) * 16) * 1024;
 
-// define macro, '\' is line splicing for preprocessing
+// define macro, '\' is line slicing for preprocessing
 #define PUSH(x)    esp -= 4; \
                    poke_l (esp, (LONG) x);
 
