@@ -42,6 +42,7 @@ void print_zamboni();
 void print_configuration(char *cfg);
 void start_train();
 
+
 extern WINDOW* train_wnd;
 static WINDOW train_window_def = {0, 0, 80, 8, 0, 0, ' '};
 WINDOW* train_wnd = &train_window_def;
@@ -71,6 +72,7 @@ void long_pause() {
 }
 
 
+// set switches to aboid train running out of track
 void stay_in_track() 
 {
 	reset_switch('3', GREEN);
@@ -78,7 +80,7 @@ void stay_in_track()
 	reset_switch('9', RED);
 }
 
-/* reset switches so that trains runs in the outer track
+/* set switches so that trains runs in the outer track
  * set switch 1, 4, 5, 8 to G, 9 to R
  */
 void trap_in_outer_loop() {	
@@ -90,8 +92,8 @@ void trap_in_outer_loop() {
 }
 
 
-/* reset switches so that trains runs in the inner track
- * set switch 2, 3, 6, 7 to G
+/* 
+ * set switches so that trains runs in the inner track
  */
 void trap_in_inner_loop() {
 	reset_switch('1', RED);
@@ -101,6 +103,8 @@ void trap_in_inner_loop() {
 	reset_switch('9', RED);	
 }
 
+
+// trap in the inner or outer loop
 void trap(int flag) 
 {
 	if (flag == INNER_LOOP) reset_switch('1', RED);
@@ -173,13 +177,13 @@ void set_train_speed(char* speed)
     short_pause();
 }
 
-
+// helper function to be called in shell
 void stop()
 {
 	set_train_speed(&zero);
 }
 
-
+// helper function to be called in shell
 void go()
 {
 	set_train_speed(&FS);
@@ -410,7 +414,7 @@ void start_4_nz()
  * 6. keep zamboni in the outer loop (4 - G)
  * 6. keep polling 10 (keep zamboni as far as possible)
  * 7. rendezvous (8 - R)
- * 7. start train, keep polling 11 to change 8 - G
+ * 7. start train, keep polling 13 to change 8 - G
  * 8. keep polling 12 to stop the train, change direction
  * 9. lead train to the start (7 - G)
  * 10. keep polling 7 (keep zamboni as far as possible)
@@ -460,22 +464,12 @@ void start_3_z()
 	change_direction();
 	wprintf(train_wnd, "Rendezvous!\n");
 
-	/*reset_switch('8', RED);
-	set_train_speed(&FS);
-	keep_polling("12");
-	reset_switch('8', GREEN);
-	set_train_speed(&zero);
-	change_direction();
-	reset_switch('7', GREEN);
-	reset_switch('3', RED);
-	wprintf(train_wnd, "Rendezvous!\n"); */
-
 	// return
 	reset_switch('7', GREEN);
 	reset_switch('3', RED);
 	keep_polling("7");
 	set_train_speed(&FS);
-	keep_polling("4");
+	keep_polling("4"); // zamboni has left
 	reset_switch('4', RED);
 	keep_polling("5");
 	set_train_speed(&zero);
@@ -556,7 +550,7 @@ void start_4_z()
 }
 
 // release zamboni, start train
-// check condition: if dangerous, track 12
+// check condition: if dangerous, go to track 12
 void avoid_danger() {	
 	//wait zamboni to be far away
 	keep_polling("10");	
@@ -592,6 +586,11 @@ void avoid_danger() {
 }
 
 
+/* 
+ * rendezvous for configuration 4
+ * incrementally increase running time on track 16, based on previous experience
+ * j - adjustment for running time
+ */
 void rendezvous_4() {
 	int i, j = 0;
 	while (poll("16")) {
