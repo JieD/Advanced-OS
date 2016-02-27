@@ -1,2 +1,4 @@
-# Advanced-OS
-A class project (Advanced OS) builds an OS and then test on a real hardware - train.
+# TOS
+##### Term Project of Advanced Operating System (CSc 720)
+
+TOS is a preemptive OS which is built upon x86 architecture. TOS supports process management, I/O, IPC. Tos is also tested on a real hardware - a model train.
