@@ -1,5 +1,5 @@
 # TOS
-##### Term Project of Advanced Operating System (CSc 720)
+##### Term Project of Advanced Operating System Course (CSc 720)
 
 TOS is a preemptive OS which is built upon x86 architecture. TOS supports process management, I/O, IPC. 
 
